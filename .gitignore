@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules/
+
+# Dist folder
+dist/
+
+# Optional eslint cache
+.eslintcache
+
+# dotenv environment variables file
+.env
+
+# Others
+/others
