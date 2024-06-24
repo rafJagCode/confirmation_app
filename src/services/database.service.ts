@@ -1,5 +1,6 @@
 import * as mongoDB from 'mongodb';
 import dotenv from 'dotenv';
+import { CompanySchema } from '../models/company';
 
 export const collections: { companies?: mongoDB.Collection } = {};
 
@@ -15,6 +16,7 @@ export async function connectToDatabase() {
   await client.connect();
 
   const db: mongoDB.Db = client.db('resumes');
+  db.command(CompanySchema);
 
   const companiesCollection: mongoDB.Collection = db.collection('companies');
 
