@@ -42,4 +42,27 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+router.post('', async (req, res) => {
+  try {
+    const name = req.body.name;
+    const company: Omit<Company, '_id'> = {
+      name,
+      visited: false,
+      visitedAt: [],
+    };
+
+    const result = await collections.companies.insertOne(company);
+
+    result
+      ? res
+          .status(201)
+          .send(
+            `Successfully created new company record with id ${result.insertedId}`
+          )
+      : res.status(500).send('Failed to create new company record.');
+  } catch (err) {
+    res.status(400).send(err.message);
+  }
+});
+
 export default router;
