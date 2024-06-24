@@ -1,4 +1,5 @@
 import express from 'express';
+import bodyParser from 'body-parser';
 import path from 'path';
 import { connectToDatabase } from './services/database.service';
 import companiesRouter from './routes/companies.router';
@@ -6,6 +7,7 @@ import companiesRouter from './routes/companies.router';
 const app = express();
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(bodyParser.json());
 
 connectToDatabase()
   .then(() => {
