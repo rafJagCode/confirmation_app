@@ -1,8 +1,9 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import path from 'path';
-import { connectToDatabase } from './services/database.service';
 import companiesRouter from './routes/companies.router';
+import { connectToDatabase } from './services/database.service';
+import { notFoundMiddleware, errorMiddleware } from './middlewares/index';
 
 const app = express();
 
@@ -13,9 +14,8 @@ connectToDatabase()
   .then(() => {
     app.use('/resumes', companiesRouter);
 
-    app.use((req, res) => {
-      res.status(404).sendFile(path.join(__dirname, 'views/404.html'));
-    });
+    app.use(notFoundMiddleware);
+    app.use(errorMiddleware);
 
     app.listen(8080, () => {
       console.log('Server is runnin on port 8080.');
