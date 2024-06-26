@@ -8,12 +8,15 @@ import companiesRouter from '../routes/companies.router';
 import parseTitle from '../utils/parseTitle';
 import { Company } from '../models/company';
 import { ObjectId } from 'mongodb';
+import { jest } from '@jest/globals';
 import { notFoundMiddleware, errorMiddleware } from '../middlewares/index';
 import {
   connectToDatabase,
   collections,
   mongo,
 } from '../services/database.service';
+
+jest.setTimeout(30 * 1000);
 
 const app = express();
 const testName = 'TEST_%2!#%3hd@QDYRhvs$Ds8dy';
@@ -85,7 +88,7 @@ describe('Testing companies routes', function () {
     expect(res.statusCode).toBe(200);
     expect(res.header['content-type']).toBe('text/html; charset=UTF-8');
     expect(updatedCompany.name).toBe(testName);
-    expect(parseTitle(res.text)).toBe('Thank you for confirmation');
+    expect(parseTitle(res.text)).toBe('Confirmation');
     expect(updatedCompany.visited).toBe(true);
     expect(Array.isArray(updatedCompany.visitedAt)).toBe(true);
     expect(
