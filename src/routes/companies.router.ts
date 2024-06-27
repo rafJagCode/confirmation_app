@@ -1,7 +1,7 @@
 import express from 'express';
-import path from 'path';
 import { Company } from '../models/company';
 import { ObjectId } from 'mongodb';
+import { BSONError } from 'bson';
 import { PushOperator } from 'mongodb';
 import { Document } from 'mongodb';
 import { collections } from '../services/database.service';
@@ -24,7 +24,12 @@ router.get('/:id', async (req, res, next) => {
     const query = { _id: new ObjectId(id) };
     const company = (await collections.companies.findOne(query)) as Company;
 
-    if (!company) return next();
+    if (!company)
+      return next({
+        code: 400,
+        message:
+          'Could not find this record. Probably provided id was incorrect.',
+      });
 
     const $set = { visited: true };
     const $push = {
@@ -33,8 +38,11 @@ router.get('/:id', async (req, res, next) => {
 
     await collections.companies.updateOne(query, { $set, $push });
 
-    res.sendFile(path.join(__dirname, '../views/confirmation.html'));
+    res.render('confirmation');
   } catch (err) {
+    if (err instanceof BSONError) {
+      return next({ code: 400, message: 'Provided id had wrong format.' });
+    }
     next(err);
   }
 });

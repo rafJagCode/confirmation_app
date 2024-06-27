@@ -1,42 +1,21 @@
-import express from 'express';
 import request from 'supertest';
-import bodyParser from 'body-parser';
 import moment from 'moment';
-import dotenv from 'dotenv';
-import path from 'path';
-import companiesRouter from '../routes/companies.router';
 import parseTitle from '../utils/parseTitle';
+import setupServer from '../index';
+import { Express } from 'express';
 import { Company } from '../models/company';
 import { ObjectId } from 'mongodb';
 import { jest } from '@jest/globals';
-import { notFoundMiddleware, errorMiddleware } from '../middlewares/index';
-import {
-  connectToDatabase,
-  collections,
-  mongo,
-} from '../services/database.service';
+import { collections, mongo } from '../services/database.service';
 
 jest.setTimeout(30 * 1000);
 
-const app = express();
 const testName = 'TEST_%2!#%3hd@QDYRhvs$Ds8dy';
 let testId: null | ObjectId;
-
-const setupServer = async () => {
-  dotenv.config();
-  await connectToDatabase();
-
-  app.use(express.static(path.join(__dirname, '../public')));
-  app.use(bodyParser.json());
-
-  app.use('/resumes', companiesRouter);
-
-  app.use(notFoundMiddleware);
-  app.use(errorMiddleware);
-};
+let app: Express;
 
 beforeAll(async () => {
-  await setupServer();
+  app = await setupServer();
   const company: Omit<Company, '_id'> = {
     name: testName,
     visited: false,
@@ -72,11 +51,8 @@ describe('Testing companies routes', function () {
     const res = await request(app).get('/resumes');
 
     expect(res.statusCode).toBe(401);
-    expect(res.header['content-type']).toBe('application/json; charset=utf-8');
-    expect(res.body).toStrictEqual({
-      code: 401,
-      message: 'Missing api-key in headers.',
-    });
+    expect(res.header['content-type']).toBe('text/html; charset=utf-8');
+    expect(parseTitle(res.text)).toBe('Something Went Wrong - 401');
   });
 
   test('responds to GET /resumes/:id with existing id', async () => {
@@ -86,7 +62,7 @@ describe('Testing companies routes', function () {
     })) as Company;
 
     expect(res.statusCode).toBe(200);
-    expect(res.header['content-type']).toBe('text/html; charset=UTF-8');
+    expect(res.header['content-type']).toBe('text/html; charset=utf-8');
     expect(updatedCompany.name).toBe(testName);
     expect(parseTitle(res.text)).toBe('Confirmation');
     expect(updatedCompany.visited).toBe(true);
@@ -103,9 +79,9 @@ describe('Testing companies routes', function () {
   test('responds to GET /resumes/:id with non-existing id', async () => {
     const res = await request(app).get(`/resumes/${new ObjectId()}`);
 
-    expect(res.statusCode).toBe(404);
-    expect(res.header['content-type']).toBe('text/html; charset=UTF-8');
-    expect(parseTitle(res.text)).toBe('Not Found');
+    expect(res.statusCode).toBe(400);
+    expect(res.header['content-type']).toBe('text/html; charset=utf-8');
+    expect(parseTitle(res.text)).toBe('Something Went Wrong - 400');
   });
 
   test('responds to POST /resumes with correct api-key and body', async () => {
@@ -129,11 +105,8 @@ describe('Testing companies routes', function () {
       .set('api-key', process.env.API_KEY);
 
     expect(res.statusCode).toBe(400);
-    expect(res.header['content-type']).toBe('application/json; charset=utf-8');
-    expect(res.body).toStrictEqual({
-      code: 400,
-      message: 'Name was not provided inside body request.',
-    });
+    expect(res.header['content-type']).toBe('text/html; charset=utf-8');
+    expect(parseTitle(res.text)).toBe('Something Went Wrong - 400');
   });
 
   test('responds to POST /resumes without api key', async () => {
@@ -141,10 +114,7 @@ describe('Testing companies routes', function () {
     const res = await request(app).post('/resumes').send(payload);
 
     expect(res.statusCode).toBe(401);
-    expect(res.header['content-type']).toBe('application/json; charset=utf-8');
-    expect(res.body).toStrictEqual({
-      code: 401,
-      message: 'Missing api-key in headers.',
-    });
+    expect(res.header['content-type']).toBe('text/html; charset=utf-8');
+    expect(parseTitle(res.text)).toBe('Something Went Wrong - 401');
   });
 });
