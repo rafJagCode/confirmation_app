@@ -5,23 +5,22 @@ import companiesRouter from './routes/companies.router';
 import { connectToDatabase } from './services/database.service';
 import { notFoundMiddleware, errorMiddleware } from './middlewares/index';
 
-const app = express();
+const setupServer = async () => {
+  const app = express();
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.json());
+  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(bodyParser.json());
+  app.set('view engine', 'ejs');
+  app.set('views', path.join(__dirname, 'views'));
 
-connectToDatabase()
-  .then(() => {
-    app.use('/resumes', companiesRouter);
+  await connectToDatabase();
 
-    app.use(notFoundMiddleware);
-    app.use(errorMiddleware);
+  app.use('/resumes', companiesRouter);
 
-    app.listen(8080, () => {
-      console.log('Server is runnin on port 8080.');
-    });
-  })
-  .catch((error: Error) => {
-    console.error('Database connection failed', error);
-    process.exit();
-  });
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
+
+  return app;
+};
+
+export default setupServer;
