@@ -17,7 +17,7 @@
   },
   "parserOptions": {
     "ecmaVersion": 11,
-    "project": ["tsconfig.json"],
+    "project": ["tsconfig.eslint.json"],
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint", "prettier"],
