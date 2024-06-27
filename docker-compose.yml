@@ -1,0 +1,25 @@
+services:
+  server:
+    build: .
+    command:
+      - /bin/sh
+      - -c
+      - |
+        npm run build
+        node dist/server.js
+    ports:
+      - '443:443'
+    links:
+      - mongo
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    ports:
+      - '27017:27017'
+    env_file: [.env]
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+volumes:
+  mongo-data:
